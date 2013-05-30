@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libxdiff
+Description: Library for creating diffs/patches in binary and text
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lxdiff
+Cflags: -I${includedir}/xdiff
