@@ -64,14 +64,14 @@ int xdl_emit_diffrec(char const *rec, long size, char const *pre, long psize,
 
 void *xdl_mmfile_first(mmfile_t *mmf, long *size)
 {
-	*size = (long)mmf->size;
+	*size = mmf->size;
 	return mmf->ptr;
 }
 
 
 long xdl_mmfile_size(mmfile_t *mmf)
 {
-	return (long)mmf->size;
+	return mmf->size;
 }
 
 
@@ -122,35 +122,6 @@ void *xdl_cha_alloc(chastore_t *cha) {
 	return data;
 }
 
-
-void *xdl_cha_first(chastore_t *cha) {
-	chanode_t *sncur;
-
-	if (!(cha->sncur = sncur = cha->head))
-		return NULL;
-
-	cha->scurr = 0;
-
-	return (char *) sncur + sizeof(chanode_t) + cha->scurr;
-}
-
-
-void *xdl_cha_next(chastore_t *cha) {
-	chanode_t *sncur;
-
-	if (!(sncur = cha->sncur))
-		return NULL;
-	cha->scurr += cha->isize;
-	if (cha->scurr == sncur->icurr) {
-		if (!(sncur = cha->sncur = sncur->next))
-			return NULL;
-		cha->scurr = 0;
-	}
-
-	return (char *) sncur + sizeof(chanode_t) + cha->scurr;
-}
-
-
 long xdl_guess_lines(mmfile_t *mf, long sample) {
 	long nl = 0, size, tsize = 0;
 	char const *data, *cur, *top;
@@ -170,6 +141,19 @@ long xdl_guess_lines(mmfile_t *mf, long sample) {
 		nl = xdl_mmfile_size(mf) / (tsize / nl);
 
 	return nl + 1;
+}
+
+int xdl_blankline(const char *line, long size, long flags)
+{
+	long i;
+
+	if (!(flags & XDF_WHITESPACE_FLAGS))
+		return (size <= 1);
+
+	for (i = 0; i < size && XDL_ISSPACE(line[i]); i++)
+		;
+
+	return (i == size);
 }
 
 int xdl_recmatch(const char *l1, long s1, const char *l2, long s2, long flags)
@@ -427,22 +411,8 @@ int xdl_num_out(char *out, long val) {
 		*str++ = '0';
 	*str = '\0';
 
-	return (int)(str - out);
+	return str - out;
 }
-
-
-long xdl_atol(char const *str, char const **next) {
-	long val, base;
-	char const *top;
-
-	for (top = str; XDL_ISDIGIT(*top); top++);
-	if (next)
-		*next = top;
-	for (val = 0, base = 1, top--; top >= str; top--, base *= 10)
-		val += base * (long)(*top - '0');
-	return val;
-}
-
 
 int xdl_emit_hunk_hdr(long s1, long c1, long s2, long c2,
 		      const char *func, long funclen, xdemitcb_t *ecb) {
@@ -478,8 +448,8 @@ int xdl_emit_hunk_hdr(long s1, long c1, long s2, long c2,
 	nb += 3;
 	if (func && funclen) {
 		buf[nb++] = ' ';
-		if (funclen > (long)sizeof(buf) - nb - 1)
-			funclen = (long)sizeof(buf) - nb - 1;
+		if (funclen > sizeof(buf) - nb - 1)
+			funclen = sizeof(buf) - nb - 1;
 		memcpy(buf + nb, func, funclen);
 		nb += funclen;
 	}

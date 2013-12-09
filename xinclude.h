@@ -26,15 +26,10 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <limits.h>
 
-#ifdef _WIN32
-#else
-#include <unistd.h>
-#endif
-
-#include "config.h"
 #include "xmacros.h"
 #include "xdiff.h"
 #include "xtypes.h"
